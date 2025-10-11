@@ -39,5 +39,6 @@ app.use("/api/ai/generate-explanation", protect, generateConceptExplanation);
 app.use("/uploads", express.static(path.join(__dirname, "uploads"), {}));
 
 // Start Server
+app.get('/', (req, res) => res.send('Prepify Backend AI Live Here!'));
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
