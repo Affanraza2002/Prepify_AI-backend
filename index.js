@@ -35,8 +35,13 @@ app.use("/api/questions", questionRoutes);
 app.use("/api/ai/generate-questions", protect, generateInterviewQuestions);
 app.use("/api/ai/generate-explanation", protect, generateConceptExplanation);
 
+const { errorHandler } = require("./middlewares/errorMiddleware");
+
 // Serve uploads folder
 app.use("/uploads", express.static(path.join(__dirname, "uploads"), {}));
+
+// Global Error Handler Middleware
+app.use(errorHandler);
 
 // Start Server
 app.get('/', (req, res) => res.send('Prepify Backend AI Live Here!'));

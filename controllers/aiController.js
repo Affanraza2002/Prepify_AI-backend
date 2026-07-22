@@ -29,25 +29,46 @@ const generateInterviewQuestions = async (req, res) => {
       response = await ai.models.generateContent({
         model: "gemini-3.5-flash-lite",
         contents: prompt,
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: "ARRAY",
+            items: {
+              type: "OBJECT",
+              properties: {
+                question: { type: "STRING" },
+                answer: { type: "STRING" }
+              },
+              required: ["question", "answer"]
+            }
+          }
+        }
       });
     } catch (modelError) {
       console.warn("gemini-3.5-flash-lite failed, attempting fallback to gemini-3.6-flash:", modelError.message);
       response = await ai.models.generateContent({
         model: "gemini-3.6-flash",
         contents: prompt,
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: "ARRAY",
+            items: {
+              type: "OBJECT",
+              properties: {
+                question: { type: "STRING" },
+                answer: { type: "STRING" }
+              },
+              required: ["question", "answer"]
+            }
+          }
+        }
       });
     }
 
-    let rawText = response.text;
-
-    // Clean it: Remove ```json and ``` from beginning and end
-    const cleanedText = rawText
-      .replace(/^```json\s*/, "") // remove starting ```json
-      .replace(/```$/, "") // remove ending ```
-      .trim(); // remove extra spaces
-
-    // Now safe to parse
-    const data = JSON.parse(cleanedText);
+    // Since we used structured outputs with responseMimeType: "application/json",
+    // response.text is guaranteed to be a valid JSON array string directly.
+    const data = JSON.parse(response.text);
 
     res.status(200).json(data);
   } catch (error) {
@@ -76,31 +97,44 @@ const generateConceptExplanation = async (req, res) => {
       response = await ai.models.generateContent({
         model: "gemini-3.5-flash-lite",
         contents: prompt,
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: "OBJECT",
+            properties: {
+              title: { type: "STRING" },
+              explanation: { type: "STRING" }
+            },
+            required: ["title", "explanation"]
+          }
+        }
       });
     } catch (modelError) {
       console.warn("gemini-3.5-flash-lite failed, attempting fallback to gemini-3.6-flash:", modelError.message);
       response = await ai.models.generateContent({
         model: "gemini-3.6-flash",
         contents: prompt,
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: "OBJECT",
+            properties: {
+              title: { type: "STRING" },
+              explanation: { type: "STRING" }
+            },
+            required: ["title", "explanation"]
+          }
+        }
       });
     }
 
-    let rawText = response.text;
-
-    // Clean it: Remove ```json and ``` from beginning and end
-    const cleanedText = rawText
-      .replace(/^```json\s*/, "") // remove starting ```json
-      .replace(/```$/, "") // remove ending ```
-      .trim(); // remove extra spaces
-
-    // Now safe to parse
-    const data = JSON.parse(cleanedText);
+    const data = JSON.parse(response.text);
 
     res.status(200).json(data);
   } catch (error) {
     console.error("AI Explanation Error:", error);
     res.status(500).json({
-      message: "Failed to generate questions",
+      message: "Failed to generate explanation",
       error: error.message,
     });
   }
