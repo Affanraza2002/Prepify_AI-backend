@@ -24,10 +24,19 @@ const generateInterviewQuestions = async (req, res) => {
       numberOfQuestions
     );
 
-    const response = await ai.models.generateContent({
-      model: "gemini-2.0-flash-lite",
-      contents: prompt,
-    });
+    let response;
+    try {
+      response = await ai.models.generateContent({
+        model: "gemini-3.5-flash-lite",
+        contents: prompt,
+      });
+    } catch (modelError) {
+      console.warn("gemini-3.5-flash-lite failed, attempting fallback to gemini-3.6-flash:", modelError.message);
+      response = await ai.models.generateContent({
+        model: "gemini-3.6-flash",
+        contents: prompt,
+      });
+    }
 
     let rawText = response.text;
 
@@ -42,6 +51,7 @@ const generateInterviewQuestions = async (req, res) => {
 
     res.status(200).json(data);
   } catch (error) {
+    console.error("AI Generation Error:", error);
     res
       .status(500)
       .json({ message: "Failed to generate questions", error: error.message });
@@ -61,10 +71,19 @@ const generateConceptExplanation = async (req, res) => {
 
     const prompt = questionExplainPrompt(question);
 
-    const response = await ai.models.generateContent({
-      model: "gemini-2.0-flash-lite",
-      contents: prompt,
-    });
+    let response;
+    try {
+      response = await ai.models.generateContent({
+        model: "gemini-3.5-flash-lite",
+        contents: prompt,
+      });
+    } catch (modelError) {
+      console.warn("gemini-3.5-flash-lite failed, attempting fallback to gemini-3.6-flash:", modelError.message);
+      response = await ai.models.generateContent({
+        model: "gemini-3.6-flash",
+        contents: prompt,
+      });
+    }
 
     let rawText = response.text;
 
@@ -79,6 +98,7 @@ const generateConceptExplanation = async (req, res) => {
 
     res.status(200).json(data);
   } catch (error) {
+    console.error("AI Explanation Error:", error);
     res.status(500).json({
       message: "Failed to generate questions",
       error: error.message,
